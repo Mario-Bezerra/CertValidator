@@ -1,6 +1,6 @@
 # CertValidator
 
-**CertValidator** is a robust Java CLI tool designed to audit SSL/TLS certificates across large projects or file systems. It recursively scans directories for Keystores (`.jks`, `.p12`) and Certificates (`.cer`, `.crt`, `.pem`), verifies their validity, and generates a comprehensive HTML report. It also includes an encrypted vault for keystore passwords and email alerting capabilities.
+**CertValidator** is a Java CLI tool designed to audit SSL/TLS certificates across large projects or file systems. It recursively scans directories for Keystores (`.jks`, `.p12`) and Certificates (`.cer`, `.crt`, `.pem`), verifies their validity, and generates a comprehensive HTML report. It also includes an encrypted vault for keystore passwords and email alerting capabilities.
 
 ## 🚀 Features
 
