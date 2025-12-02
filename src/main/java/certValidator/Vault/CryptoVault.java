@@ -10,6 +10,7 @@ import java.security.spec.KeySpec;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -84,7 +85,10 @@ public class CryptoVault {
             Cipher cipher = initCipher(Cipher.DECRYPT_MODE, masterKey, salt, iv);
             String plain = new String(cipher.doFinal(cipherText), StandardCharsets.UTF_8);
             
-            return Arrays.asList(plain.split(COMMA_STRING_VALUE));
+            return Arrays.stream(plain.split(COMMA_STRING_VALUE))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .collect(Collectors.toList());
         } catch (Exception e) {
         	logger.error("ERROR OPENING vault (wrong MasterKey?) : " + e.getMessage());
             return new ArrayList<>();

@@ -6,6 +6,8 @@ import java.nio.file.*;
 import java.security.SecureRandom;
 import java.security.spec.KeySpec;
 import java.util.*;
+import java.util.stream.Collectors;
+
 import javax.crypto.*;
 import javax.crypto.spec.*;
 import org.slf4j.Logger;
@@ -45,6 +47,10 @@ public class FileSecretProvider implements ISecretProvider {
         try {
             logger.info("Encrypting secrets...");
             String data = Files.readString(input, StandardCharsets.UTF_8).trim();
+            
+            //Remove BOM (Byte Order Mark)
+            data = data.replace("\uFEFF", "").trim();
+            
             byte[] salt = new byte[SALT_LENGTH];
             byte[] iv = new byte[IV_LENGTH];
             SecureRandom random = new SecureRandom();
@@ -81,7 +87,10 @@ public class FileSecretProvider implements ISecretProvider {
             Cipher cipher = initCipher(Cipher.DECRYPT_MODE, masterKey, salt, iv);
             String plain = new String(cipher.doFinal(cipherText), StandardCharsets.UTF_8);
             
-            return Arrays.asList(plain.split(","));
+            return Arrays.stream(plain.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .collect(Collectors.toList());
         } catch (Exception e) {
             logger.error("Error unlocking vault: " + e.getMessage());
             return new ArrayList<>();
