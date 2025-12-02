@@ -15,12 +15,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import certValidator.Config.AppConfig;
+import certValidator.Interfaces.INotifier;
 import certValidator.Model.CertModel;
 
-public class EmailNotifier {
+public class EmailNotifier implements INotifier {
+    
 	final static Logger logger = LoggerFactory.getLogger(EmailNotifier.class);
+    private final AppConfig config;
+
+    public EmailNotifier(AppConfig config) {
+        this.config = config;
+    }
 	
-    public static void sendAlert(AppConfig config, List<CertModel> riskyCerts) {
+    @Override
+    public void sendAlert(List<CertModel> riskyCerts) {
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
