@@ -1,8 +1,9 @@
 package notifier;
 
-import certValidator.Config.AppConfig;
-import certValidator.Model.CertModel;
-import certValidator.Notifier.EmailNotifier;
+import certValidator.config.AppConfig;
+import certValidator.model.CertModel;
+import certValidator.notifier.EmailNotifier;
+
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import java.util.Collections;
@@ -21,7 +22,7 @@ class EmailNotifierTest {
         when(mockConfig.getEmailTo()).thenReturn("admin@test.com");
 
         EmailNotifier notifier = new EmailNotifier(mockConfig);
-        CertModel fakeCert = new CertModel("file.jks", "alias", "Issuer", null, "hash");
+        CertModel fakeCert = new CertModel("file.jks", "alias", "Issuer", null, null, "hash");
 
         assertDoesNotThrow(() -> notifier.sendAlert(Collections.singletonList(fakeCert)));
     }

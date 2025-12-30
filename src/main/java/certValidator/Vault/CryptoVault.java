@@ -1,4 +1,4 @@
-package certValidator.Vault;
+package certValidator.vault;
 
 import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
@@ -22,33 +22,44 @@ import javax.crypto.spec.SecretKeySpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Utility class for encryption and decryption of secrets using AES-GCM.
+ */
 public class CryptoVault {
-    private static final String TRANSFORMER_CIPHER_NAME 		  = "AES/GCM/NoPadding";
-	private static final String ALGORITHM_NAME_SECRET_KEY_SPEC 	  = "AES";
-	private static final String ALGORITHM_NAME_SECRET_KEY_FACTORY = "PBKDF2WithHmacSHA256";
-	private static final String COMMA_STRING_VALUE 				  = ",";
-	
-	private static final int KEY_LENGTH 	 = 256;
+    private static final String TRANSFORMER_CIPHER_NAME = "AES/GCM/NoPadding";
+    private static final String ALGORITHM_NAME_SECRET_KEY_SPEC = "AES";
+    private static final String ALGORITHM_NAME_SECRET_KEY_FACTORY = "PBKDF2WithHmacSHA256";
+    private static final String COMMA_STRING_VALUE = ",";
+
+    private static final int KEY_LENGTH = 256;
     private static final int ITERATION_COUNT = 65536;
-    private static final int GCM_TAG_LENGTH  = 128;
-    private static final int SALT_LENGTH 	 = 16;
-    private static final int IV_LENGTH 		 = 12;
-    
+    private static final int GCM_TAG_LENGTH = 128;
+    private static final int SALT_LENGTH = 16;
+    private static final int IV_LENGTH = 12;
+
     final static Logger logger = LoggerFactory.getLogger(CryptoVault.class);
 
+    /**
+     * Encrypts a raw passwords file into a vault file using a master key.
+     *
+     * @param rawPath   Path to the raw text file with passwords.
+     * @param vaultPath Path where the encrypted vault should be saved.
+     * @param masterKey The key used for encryption.
+     */
     public static void initializeVault(String rawPath, String vaultPath, String masterKey) {
         Path input = Paths.get(rawPath);
-        if (!Files.exists(input)) return;
+        if (!Files.exists(input))
+            return;
 
         if (masterKey.isEmpty()) {
-        	logger.error("ERROR : 'passwords.txt' founded but MASTER_KEY is not defined.");
+            logger.error("ERROR : 'passwords.txt' founded but MASTER_KEY is not defined.");
             return;
         }
 
         try {
-        	logger.info("Cripto " + rawPath + " to " + vaultPath + "...");
+            logger.info("Cripto " + rawPath + " to " + vaultPath + "...");
             String data = Files.readString(input, StandardCharsets.UTF_8).trim();
-            
+
             byte[] salt = new byte[SALT_LENGTH];
             byte[] iv = new byte[IV_LENGTH];
             new SecureRandom().nextBytes(salt);
@@ -62,19 +73,27 @@ public class CryptoVault {
                 fos.write(iv);
                 fos.write(cipherText);
             }
-            
+
             // Optional : Delete file after ingestion.
-            // Files.delete(input); 
+            // Files.delete(input);
             logger.info("Vault created.");
 
         } catch (Exception e) {
-        	logger.error("ERROR creating vault : " + e.getMessage());
+            logger.error("ERROR creating vault : " + e.getMessage());
         }
     }
 
+    /**
+     * Decrypts a vault file and returns the list of passwords.
+     *
+     * @param vaultPath Path to the encrypted vault file.
+     * @param masterKey The key used for decryption.
+     * @return A list of decrypted passwords.
+     */
     public static List<String> loadPasswords(String vaultPath, String masterKey) {
         Path path = Paths.get(vaultPath);
-        if (!Files.exists(path) || masterKey.isEmpty()) return new ArrayList<>();
+        if (!Files.exists(path) || masterKey.isEmpty())
+            return new ArrayList<>();
 
         try {
             byte[] content = Files.readAllBytes(path);
@@ -84,13 +103,13 @@ public class CryptoVault {
 
             Cipher cipher = initCipher(Cipher.DECRYPT_MODE, masterKey, salt, iv);
             String plain = new String(cipher.doFinal(cipherText), StandardCharsets.UTF_8);
-            
+
             return Arrays.stream(plain.split(COMMA_STRING_VALUE))
                     .map(String::trim)
                     .filter(s -> !s.isEmpty())
                     .collect(Collectors.toList());
         } catch (Exception e) {
-        	logger.error("ERROR OPENING vault (wrong MasterKey?) : " + e.getMessage());
+            logger.error("ERROR OPENING vault (wrong MasterKey?) : " + e.getMessage());
             return new ArrayList<>();
         }
     }

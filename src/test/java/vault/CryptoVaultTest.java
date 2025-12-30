@@ -1,8 +1,10 @@
 package vault;
 
-import certValidator.Vault.CryptoVault;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+
+import certValidator.vault.CryptoVault;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -28,7 +30,7 @@ class CryptoVaultTest {
 
         List<String> loadedPasswords = CryptoVault.loadPasswords(secretsFile.toString(), masterKey);
 
-        assertEquals( 3, loadedPasswords.size());
+        assertEquals(3, loadedPasswords.size());
         assertTrue(loadedPasswords.contains("changeit"));
         assertTrue(loadedPasswords.contains("senha1"));
     }
@@ -38,9 +40,9 @@ class CryptoVaultTest {
         Path passwordsFile = tempDir.resolve("passwords.txt");
         Path secretsFile = tempDir.resolve("secrets.dat");
         Files.writeString(passwordsFile, "senha1");
-        
+
         CryptoVault.initializeVault(passwordsFile.toString(), secretsFile.toString(), "keyA");
-        
+
         List<String> result = CryptoVault.loadPasswords(secretsFile.toString(), "keyB");
         assertTrue(result.isEmpty(), "Deve retornar lista vazia se a senha mestra estiver errada");
     }

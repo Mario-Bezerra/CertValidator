@@ -6,33 +6,41 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import certValidator.Config.AppConfig;
-import certValidator.Interfaces.ICertificateParser;
-import certValidator.Interfaces.INotifier;
-import certValidator.Interfaces.IReporter;
-import certValidator.Interfaces.ISecretProvider;
-import certValidator.Model.CertModel;
-import certValidator.Notifier.EmailNotifier;
-import certValidator.Parsers.JksParser;
-import certValidator.Parsers.X509Parser;
-import certValidator.Reporter.HtmlReporter;
-import certValidator.Scanner.ScannerService;
-import certValidator.Vault.FileSecretProvider;
+import certValidator.config.AppConfig;
+import certValidator.interfaces.ICertificateParser;
+import certValidator.interfaces.INotifier;
+import certValidator.interfaces.IReporter;
+import certValidator.interfaces.ISecretProvider;
+import certValidator.model.CertModel;
+import certValidator.notifier.EmailNotifier;
+import certValidator.parsers.JksParser;
+import certValidator.parsers.X509Parser;
+import certValidator.reporter.HtmlReporter;
+import certValidator.scanner.ScannerService;
+import certValidator.vault.FileSecretProvider;
 
+/**
+ * Entry point for the CertValidator application when run as a standalone jar.
+ */
 public class Main {
+    /** Logger instance for the Main class. */
     final static Logger logger = LoggerFactory.getLogger(Main.class);
-    
+
+    /**
+     * Main method that orchestrates the certificate scanning process.
+     *
+     * @param args Command line arguments (unused).
+     */
     public static void main(String[] args) {
         logger.info("Validation of certificates initiated.");
 
         AppConfig config = new AppConfig();
 
         ISecretProvider secretProvider = new FileSecretProvider(
-            "passwords.txt", 
-            "secrets.dat", 
-            config.getMasterKey()
-        );
-        
+                "passwords.txt",
+                "secrets.dat",
+                config.getMasterKey());
+
         secretProvider.initialize();
         List<String> passwords = secretProvider.getPasswords();
 
@@ -43,7 +51,6 @@ public class Main {
         List<ICertificateParser> parsers = new java.util.ArrayList<>();
         parsers.add(new JksParser());
         parsers.add(new X509Parser());
-
 
         ScannerService scanner = new ScannerService(passwords, parsers);
         IReporter reporter = new HtmlReporter(config.getReportPath());

@@ -1,8 +1,10 @@
 package vault;
 
-import certValidator.Vault.FileSecretProvider;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+
+import certValidator.vault.FileSecretProvider;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -23,16 +25,15 @@ class FileSecretProviderTest {
         String masterKey = "master123";
 
         FileSecretProvider provider = new FileSecretProvider(
-            rawPath.toString(),
-            vaultPath.toString(),
-            masterKey
-        );
+                rawPath.toString(),
+                vaultPath.toString(),
+                masterKey);
 
         provider.initialize();
         assertTrue(Files.exists(vaultPath), "O arquivo secrets.dat deveria ter sido criado");
 
         List<String> passwords = provider.getPasswords();
-        
+
         assertEquals(3, passwords.size());
         assertTrue(passwords.contains("changeit"));
     }
@@ -40,12 +41,11 @@ class FileSecretProviderTest {
     @Test
     void testHandlesMissingFileGracefully() {
         FileSecretProvider provider = new FileSecretProvider(
-            "arquivo_inexistente.txt",
-            "secrets.dat",
-            "key"
-        );
+                "arquivo_inexistente.txt",
+                "secrets.dat",
+                "key");
         assertDoesNotThrow(provider::initialize);
-        
+
         assertTrue(provider.getPasswords().isEmpty());
     }
 
@@ -58,10 +58,9 @@ class FileSecretProviderTest {
         new FileSecretProvider(rawPath.toString(), vaultPath.toString(), "KeyA").initialize();
 
         FileSecretProvider wrongProvider = new FileSecretProvider(
-            rawPath.toString(),
-            vaultPath.toString(),
-            "KeyB"
-        );
+                rawPath.toString(),
+                vaultPath.toString(),
+                "KeyB");
 
         List<String> result = wrongProvider.getPasswords();
         assertTrue(result.isEmpty(), "Deve retornar vazio se a senha estiver errada");

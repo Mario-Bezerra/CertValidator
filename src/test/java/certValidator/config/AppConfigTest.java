@@ -1,6 +1,6 @@
-package config;
+package certValidator.config;
 
-import certValidator.Config.AppConfig;
+import certValidator.config.AppConfig;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -19,22 +19,22 @@ class AppConfigTest {
         AppConfig config = new AppConfig();
         assertFalse(config.isEmailEnabled());
     }
-    
+
     @Test
     void testAllGettersReturnDefaults() {
         AppConfig config = new AppConfig();
-        
+
         assertEquals("./", config.getScanPath());
         assertEquals(".cert_reporter.html", config.getReportPath());
         assertEquals("", config.getMasterKey());
         assertEquals(30, config.getWarningDays());
-        
+
         assertEquals("", config.getSmtpHost());
         assertEquals("587", config.getSmtpPort());
         assertEquals("", config.getEmailUser());
         assertEquals("", config.getEmailPass());
         assertEquals("", config.getEmailTo());
-        
+
         assertFalse(config.isEmailEnabled());
     }
 }
