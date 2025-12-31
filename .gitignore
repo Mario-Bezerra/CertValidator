@@ -20,3 +20,5 @@ buildNumber.properties
 .settings
 *.settings
 /.settings
+.vscode
+*.vscode
