@@ -17,6 +17,12 @@ import certValidator.interfaces.ICertificateParser;
 public class X509Parser implements ICertificateParser {
 
     /**
+     * Default constructor for X509Parser.
+     */
+    public X509Parser() {
+    }
+
+    /**
      * @param path The path to the file.
      * @return true if the file extension is .cer, .crt, or .pem.
      */

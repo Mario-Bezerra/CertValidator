@@ -26,6 +26,13 @@ import org.slf4j.LoggerFactory;
  * Utility class for encryption and decryption of secrets using AES-GCM.
  */
 public class CryptoVault {
+
+    /**
+     * Default constructor for CryptoVault.
+     */
+    public CryptoVault() {
+    }
+
     private static final String TRANSFORMER_CIPHER_NAME = "AES/GCM/NoPadding";
     private static final String ALGORITHM_NAME_SECRET_KEY_SPEC = "AES";
     private static final String ALGORITHM_NAME_SECRET_KEY_FACTORY = "PBKDF2WithHmacSHA256";

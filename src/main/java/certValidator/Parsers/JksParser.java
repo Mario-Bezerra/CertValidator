@@ -18,6 +18,12 @@ import certValidator.model.CertModel;
 public class JksParser implements ICertificateParser {
 
     /**
+     * Default constructor for JksParser.
+     */
+    public JksParser() {
+    }
+
+    /**
      * @param path The path to the file.
      * @return true if the file extension is .jks, .p12, or .pfx.
      */

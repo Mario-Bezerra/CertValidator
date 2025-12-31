@@ -25,6 +25,13 @@ import certValidator.vault.PropertySecretProvider;
  * Entry point for the CertValidator application when run as a standalone jar.
  */
 public class Main {
+
+    /**
+     * Default constructor for Main.
+     */
+    public Main() {
+    }
+
     /** Logger instance for the Main class. */
     final static Logger logger = LoggerFactory.getLogger(Main.class);
 

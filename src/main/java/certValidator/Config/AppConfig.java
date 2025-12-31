@@ -5,6 +5,13 @@ package certValidator.config;
  * environment variables.
  */
 public class AppConfig {
+
+    /**
+     * Default constructor for AppConfig.
+     */
+    public AppConfig() {
+    }
+
     /**
      * Returns the configured scan path.
      * 

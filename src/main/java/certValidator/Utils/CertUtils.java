@@ -11,6 +11,13 @@ import certValidator.model.CertModel;
  * and hashing.
  */
 public class CertUtils {
+
+    /**
+     * Default constructor for CertUtils.
+     */
+    public CertUtils() {
+    }
+
     /**
      * Extracts relevant metadata from an X509Certificate and creates a CertModel.
      *

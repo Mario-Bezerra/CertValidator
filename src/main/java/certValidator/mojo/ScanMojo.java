@@ -34,6 +34,12 @@ import certValidator.vault.PropertySecretProvider;
 @Mojo(name = "scan", defaultPhase = LifecyclePhase.VERIFY)
 public class ScanMojo extends AbstractMojo {
 
+    /**
+     * Default constructor for ScanMojo.
+     */
+    public ScanMojo() {
+    }
+
     /** Root directory to start scanning from. */
     @Parameter(defaultValue = "${project.basedir}", property = "scanPath", required = true)
     private File scanPath;
@@ -78,32 +84,56 @@ public class ScanMojo extends AbstractMojo {
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
     private MavenProject project;
 
-    /** @param scanPath Root directory to start scanning from. */
+    /**
+     * Root directory to start scanning from.
+     * 
+     * @param scanPath Root directory to start scanning from.
+     */
     public void setScanPath(File scanPath) {
         this.scanPath = scanPath;
     }
 
-    /** @param reportPath Path to save the generated HTML report. */
+    /**
+     * Path to save the generated HTML report.
+     * 
+     * @param reportPath Path to save the generated HTML report.
+     */
     public void setReportPath(File reportPath) {
         this.reportPath = reportPath;
     }
 
-    /** @param warningDays Number of days before expiration to trigger a warning. */
+    /**
+     * Number of days before expiration to trigger a warning.
+     * 
+     * @param warningDays Number of days before expiration to trigger a warning.
+     */
     public void setWarningDays(int warningDays) {
         this.warningDays = warningDays;
     }
 
-    /** @param passwordsFile Path to the text file containing passwords. */
+    /**
+     * Path to the text file containing passwords.
+     * 
+     * @param passwordsFile Path to the text file containing passwords.
+     */
     public void setPasswordsFile(String passwordsFile) {
         this.passwordsFile = passwordsFile;
     }
 
-    /** @param secretsFile Path to the file containing encrypted secrets. */
+    /**
+     * Path to the file containing encrypted secrets.
+     * 
+     * @param secretsFile Path to the file containing encrypted secrets.
+     */
     public void setSecretsFile(String secretsFile) {
         this.secretsFile = secretsFile;
     }
 
-    /** @param directPasswords List of passwords provided directly. */
+    /**
+     * List of passwords provided directly.
+     * 
+     * @param directPasswords List of passwords provided directly.
+     */
     public void setDirectPasswords(List<String> directPasswords) {
         this.directPasswords = directPasswords;
     }
