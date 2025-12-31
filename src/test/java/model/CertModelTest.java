@@ -2,7 +2,7 @@ package model;
 
 import org.junit.jupiter.api.Test;
 
-import certValidator.Model.CertModel;
+import certValidator.model.CertModel;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -14,20 +14,19 @@ class CertModelTest {
     @Test
     void testValidCertificate() {
         Date futureDate = Date.from(Instant.now().plus(100, ChronoUnit.DAYS));
-        
-        CertModel model = new CertModel("path/fake.jks", "alias", "Issuer", futureDate, "checksum123");
+
+        CertModel model = new CertModel("path/fake.jks", "alias", "Issuer", new Date(), futureDate, "checksum123");
 
         assertTrue(model.isValid(), "O certificado deveria ser válido");
         assertEquals(null, model.getError());
-        // A margem de erro de 1 dia é aceitável devido à execução do teste
-        assertTrue(model.getDaysRemaining() >= 99); 
+        assertTrue(model.getDaysRemaining() >= 99);
     }
 
     @Test
     void testExpiringSoonCertificate() {
         Date nearFutureDate = Date.from(Instant.now().plus(20, ChronoUnit.DAYS));
-        
-        CertModel model = new CertModel("path/fake.jks", "alias", "Issuer", nearFutureDate, "checksum123");
+
+        CertModel model = new CertModel("path/fake.jks", "alias", "Issuer", new Date(), nearFutureDate, "checksum123");
 
         assertTrue(model.isValid(), "O certificado ainda é tecnicamente válido");
         assertTrue(model.getDaysRemaining() <= 20);
@@ -37,8 +36,8 @@ class CertModelTest {
     @Test
     void testExpiredCertificate() {
         Date pastDate = Date.from(Instant.now().minus(1, ChronoUnit.DAYS));
-        
-        CertModel model = new CertModel("path/fake.jks", "alias", "Issuer", pastDate, "checksum123");
+
+        CertModel model = new CertModel("path/fake.jks", "alias", "Issuer", new Date(), pastDate, "checksum123");
 
         assertFalse(model.isValid(), "O certificado deveria ser inválido/expirado");
         assertTrue(model.getDaysRemaining() < 0);

@@ -1,4 +1,4 @@
-package certValidator.Vault;
+package certValidator.vault;
 
 import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
@@ -12,11 +12,17 @@ import javax.crypto.*;
 import javax.crypto.spec.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import certValidator.Interfaces.ISecretProvider;
 
+import certValidator.interfaces.ISecretProvider;
+
+/**
+ * Implementation of ISecretProvider that manages secrets stored in an encrypted
+ * file.
+ */
 public class FileSecretProvider implements ISecretProvider {
+
     private static final Logger logger = LoggerFactory.getLogger(FileSecretProvider.class);
-    
+
     private static final String ALGORITHM = "AES/GCM/NoPadding";
     private static final int KEY_LENGTH = 256;
     private static final int ITERATION_COUNT = 65536;
@@ -28,16 +34,27 @@ public class FileSecretProvider implements ISecretProvider {
     private final String vaultPath;
     private final String masterKey;
 
+    /**
+     * Constructs a FileSecretProvider.
+     *
+     * @param rawPath   The path to the source raw passwords file.
+     * @param vaultPath The path to the target encrypted vault file.
+     * @param masterKey The master key for encryption/decryption.
+     */
     public FileSecretProvider(String rawPath, String vaultPath, String masterKey) {
         this.rawPath = rawPath;
         this.vaultPath = vaultPath;
         this.masterKey = masterKey;
     }
 
+    /**
+     * Initializes the provider by encrypting the raw file if it exists.
+     */
     @Override
     public void initialize() {
         Path input = Paths.get(rawPath);
-        if (!Files.exists(input)) return;
+        if (!Files.exists(input))
+            return;
 
         if (masterKey == null || masterKey.isEmpty()) {
             logger.error("ERROR: Passwords file found but MASTER_KEY is empty.");
@@ -47,10 +64,8 @@ public class FileSecretProvider implements ISecretProvider {
         try {
             logger.info("Encrypting secrets...");
             String data = Files.readString(input, StandardCharsets.UTF_8).trim();
-            
-            //Remove BOM (Byte Order Mark)
             data = data.replace("\uFEFF", "").trim();
-            
+
             byte[] salt = new byte[SALT_LENGTH];
             byte[] iv = new byte[IV_LENGTH];
             SecureRandom random = new SecureRandom();
@@ -71,6 +86,11 @@ public class FileSecretProvider implements ISecretProvider {
         }
     }
 
+    /**
+     * Decrypts the vault and returns the list of passwords.
+     *
+     * @return A list of password strings.
+     */
     @Override
     public List<String> getPasswords() {
         Path path = Paths.get(vaultPath);
@@ -86,10 +106,10 @@ public class FileSecretProvider implements ISecretProvider {
 
             Cipher cipher = initCipher(Cipher.DECRYPT_MODE, masterKey, salt, iv);
             String plain = new String(cipher.doFinal(cipherText), StandardCharsets.UTF_8);
-            
+
             return Arrays.stream(plain.split(","))
                     .map(String::trim)
-                    .filter(s -> !s.isEmpty())
+                    .filter(string -> !string.isEmpty())
                     .collect(Collectors.toList());
         } catch (Exception e) {
             logger.error("Error unlocking vault: " + e.getMessage());
