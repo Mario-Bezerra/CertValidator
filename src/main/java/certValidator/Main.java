@@ -17,7 +17,9 @@ import certValidator.parsers.JksParser;
 import certValidator.parsers.X509Parser;
 import certValidator.reporter.HtmlReporter;
 import certValidator.scanner.ScannerService;
+import certValidator.vault.EnvSecretProvider;
 import certValidator.vault.FileSecretProvider;
+import certValidator.vault.PropertySecretProvider;
 
 /**
  * Entry point for the CertValidator application when run as a standalone jar.
@@ -36,16 +38,38 @@ public class Main {
 
         AppConfig config = new AppConfig();
 
-        ISecretProvider secretProvider = new FileSecretProvider(
-                "passwords.txt",
-                "secrets.dat",
-                config.getMasterKey());
+        List<ISecretProvider> providers = new java.util.ArrayList<>();
+        String sources = config.getSecretSources();
 
-        secretProvider.initialize();
-        List<String> passwords = secretProvider.getPasswords();
+        for (String source : sources.split(",")) {
+            switch (source.trim().toLowerCase()) {
+                case "file":
+                    providers.add(new FileSecretProvider("passwords.txt", "secrets.dat", config.getMasterKey()));
+                    break;
+                case "env":
+                    providers.add(new EnvSecretProvider(config.getPasswordsEnvVar()));
+                    break;
+                case "prop":
+                case "property":
+                    providers
+                            .add(new PropertySecretProvider(config.getPropertiesFilePath(), config.getPropertiesKey()));
+                    break;
+            }
+        }
+
+        List<String> passwords = new java.util.ArrayList<>();
+        for (ISecretProvider provider : providers) {
+            provider.initialize();
+            passwords.addAll(provider.getPasswords());
+        }
+
+        // Remove duplicates passwords
+        passwords = passwords.stream().distinct().collect(Collectors.toList());
 
         if (passwords.isEmpty()) {
-            logger.warn("No password loaded. Protected Keystores will fail.");
+            logger.warn("No passwords loaded from " + sources + ". Protected Keystores might fail.");
+        } else {
+            logger.info("Loaded " + passwords.size() + " password(s) from " + providers.size() + " source(s).");
         }
 
         List<ICertificateParser> parsers = new java.util.ArrayList<>();

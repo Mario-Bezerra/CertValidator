@@ -23,7 +23,10 @@ import certValidator.parsers.JksParser;
 import certValidator.parsers.X509Parser;
 import certValidator.reporter.HtmlReporter;
 import certValidator.scanner.ScannerService;
+import certValidator.vault.DirectSecretProvider;
+import certValidator.vault.EnvSecretProvider;
 import certValidator.vault.FileSecretProvider;
+import certValidator.vault.PropertySecretProvider;
 
 /**
  * Maven Mojo that performs the certificate scan.
@@ -55,9 +58,55 @@ public class ScanMojo extends AbstractMojo {
     @Parameter(property = "emailTo")
     private String emailTo;
 
+    /** Name of the environment variable containing passwords. */
+    @Parameter(defaultValue = "CERT_PASSWORDS", property = "passwordsEnv")
+    private String passwordsEnv;
+
+    /** Path to a properties file containing passwords. */
+    @Parameter(property = "propertiesFile")
+    private File propertiesFile;
+
+    /** The key in the properties file containing passwords. */
+    @Parameter(defaultValue = "cert.passwords", property = "propertiesKey")
+    private String propertiesKey;
+
+    /** List of passwords provided directly in the configuration. */
+    @Parameter
+    private List<String> directPasswords;
+
     /** The Maven Project. */
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
     private MavenProject project;
+
+    /** @param scanPath Root directory to start scanning from. */
+    public void setScanPath(File scanPath) {
+        this.scanPath = scanPath;
+    }
+
+    /** @param reportPath Path to save the generated HTML report. */
+    public void setReportPath(File reportPath) {
+        this.reportPath = reportPath;
+    }
+
+    /** @param warningDays Number of days before expiration to trigger a warning. */
+    public void setWarningDays(int warningDays) {
+        this.warningDays = warningDays;
+    }
+
+    /** @param passwordsFile Path to the text file containing passwords. */
+    public void setPasswordsFile(String passwordsFile) {
+        this.passwordsFile = passwordsFile;
+    }
+
+    /** @param secretsFile Path to the file containing encrypted secrets. */
+    public void setSecretsFile(String secretsFile) {
+        this.secretsFile = secretsFile;
+    }
+
+    /** @param directPasswords List of passwords provided directly. */
+    public void setDirectPasswords(List<String> directPasswords) {
+        this.directPasswords = directPasswords;
+    }
 
     /**
      * Executes the certificate scan, generates a report, and sends alerts if
@@ -82,16 +131,37 @@ public class ScanMojo extends AbstractMojo {
                 // But actually, we should probably construct specific configs.
             }
 
-            ISecretProvider secretProvider = new FileSecretProvider(
-                    passwordsFile,
-                    secretsFile,
-                    config.getMasterKey());
+            List<ISecretProvider> providers = new ArrayList<>();
 
-            secretProvider.initialize();
-            List<String> passwords = secretProvider.getPasswords();
+            // 1. File Vault Provider (Encodes if raw file exists, then provides)
+            providers.add(new FileSecretProvider(passwordsFile, secretsFile, config.getMasterKey()));
+
+            // 2. Environment Variable Provider
+            providers.add(new EnvSecretProvider(passwordsEnv));
+
+            // 3. Properties File Provider
+            if (propertiesFile != null) {
+                providers.add(new PropertySecretProvider(propertiesFile.getAbsolutePath(), propertiesKey));
+            }
+
+            // 4. Direct Passwords Provider
+            if (directPasswords != null && !directPasswords.isEmpty()) {
+                providers.add(new DirectSecretProvider(directPasswords));
+            }
+
+            List<String> passwords = new ArrayList<>();
+            for (ISecretProvider provider : providers) {
+                provider.initialize();
+                passwords.addAll(provider.getPasswords());
+            }
+
+            // Remove duplicates
+            passwords = passwords.stream().distinct().collect(Collectors.toList());
 
             if (passwords.isEmpty()) {
-                getLog().warn("No password loaded. Protected Keystores might fail.");
+                getLog().warn("No passwords loaded from any source. Protected Keystores might fail.");
+            } else {
+                getLog().info("Loaded " + passwords.size() + " password(s) from " + providers.size() + " source(s).");
             }
 
             List<ICertificateParser> parsers = new ArrayList<>();

@@ -41,6 +41,42 @@ public class AppConfig {
         return Integer.parseInt(getEnv("WARNING_DAYS", "30"));
     }
 
+    /**
+     * Returns the comma-separated list of secret sources.
+     * 
+     * @return Comma-separated list (e.g., "file,env,prop"). Default is "file".
+     */
+    public String getSecretSources() {
+        return getEnv("SECRET_SOURCES", "file");
+    }
+
+    /**
+     * Returns the name of the environment variable for passwords.
+     * 
+     * @return The environment variable name.
+     */
+    public String getPasswordsEnvVar() {
+        return getEnv("PASSWORDS_ENV", "CERT_PASSWORDS");
+    }
+
+    /**
+     * Returns the path to the properties file.
+     * 
+     * @return The properties file path.
+     */
+    public String getPropertiesFilePath() {
+        return getEnv("PROPERTIES_FILE", "");
+    }
+
+    /**
+     * Returns the key in the properties file for passwords.
+     * 
+     * @return The properties key.
+     */
+    public String getPropertiesKey() {
+        return getEnv("PROPERTIES_KEY", "cert.passwords");
+    }
+
     // Email Configs
     /**
      * Returns the SMTP host.
@@ -97,7 +133,10 @@ public class AppConfig {
     }
 
     private String getEnv(String key, String def) {
-        String val = System.getenv(key);
+        String val = System.getProperty(key);
+        if (val == null || val.isEmpty()) {
+            val = System.getenv(key);
+        }
         return (val == null || val.isEmpty()) ? def : val;
     }
 }

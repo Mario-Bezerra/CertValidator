@@ -18,7 +18,7 @@ class CertUtilsTest {
     @Test
     void testExtractMetadata() throws Exception {
         X509Certificate mockCert = Mockito.mock(X509Certificate.class);
-        PublicKey mockKey = Mockito.mock(PublicKey.class);
+        Mockito.mock(PublicKey.class);
 
         // CertUtils.extractMetadata uses getIssuerX500Principal().getName();
         when(mockCert.getIssuerX500Principal()).thenReturn(new X500Principal("CN=Issuer,OU=Test"));

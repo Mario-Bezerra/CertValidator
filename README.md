@@ -7,6 +7,8 @@
 * **Recursive Scanning:** Smartly scans directories, automatically ignoring standard framework folders (`node_modules`, `target`, `.git`, etc.).
 * **Format Support:** Supports JKS, PKCS12, X.509 certificates.
 * **Secure Vault:** Encrypts keystore passwords using AES-256 (GCM).
+* **Flexible Secrets:** Load passwords from files, environment variables, or properties files.
+* **Encryption Goal:** Dedicated Maven goal to encrypt passwords separately from scanning.
 * **HTML Reporting:** Generates a modern, styled audit report.
 * **Email Alerts:** Can send notifications for expired or expiring certificates (configurable).
 
@@ -61,7 +63,26 @@ Run it manually:
 mvn certvalidator:scan
 ```
 
-### 2. As a Dependency (Java Library)
+### 2. Standalone Encryption
+You can generate the encrypted `secrets.dat` file without running a full scan:
+```bash
+mvn certvalidator:encrypt -DMASTER_KEY=your_key
+```
+
+### 3. Flexible Password Sourcing
+The plugin can aggregate passwords from multiple sources simultaneously:
+
+```xml
+<configuration>
+    <passwordsEnv>MY_ENV_VAR</passwordsEnv>
+    <propertiesFile>path/to/my.properties</propertiesFile>
+    <directPasswords>
+        <password>direct123</password>
+    </directPasswords>
+</configuration>
+```
+
+### 4. As a Dependency (Java Library)
 
 If you want to use the scanning logic programmatically in your own Java application:
 
@@ -92,6 +113,12 @@ For security (especially for Vault Master Key and Email Credentials), use enviro
 | Variable | Description | Default |
 | :--- | :--- | :--- |
 | `MASTER_KEY` | **Required** for Vault. The key used to encrypt/decrypt passwords. | *(None)* |
+| `SECRET_SOURCES` | Comma-separated sources to load: `file,env,prop`. | `file` |
+| `PASSWORDS_ENV` | Env var name to read passwords from if `env` source is active. | `CERT_PASSWORDS` |
+| `PROPERTIES_FILE` | Path to .properties file if `prop` source is active. | *(None)* |
+| `PROPERTIES_KEY` | Key for passwords in the properties file. | `cert.passwords` |
+| `SCAN_PATH` | Path to scan for certificates. | `./` |
+| `REPORT_PATH` | Path to save the HTML report. | `.cert_reporter.html` |
 | `SMTP_HOST` | SMTP Server for alerts. | *(Empty)* |
 | `SMTP_PORT` | SMTP Port. | `587` |
 | `EMAIL_USER` | SMTP Username. | *(Empty)* |

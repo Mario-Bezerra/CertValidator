@@ -1,6 +1,5 @@
 package certValidator.config;
 
-import certValidator.config.AppConfig;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 

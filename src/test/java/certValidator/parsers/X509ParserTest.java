@@ -3,13 +3,8 @@ package certValidator.parsers;
 import certValidator.model.CertModel;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.Mockito;
-
-import java.io.ByteArrayInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.List;
 

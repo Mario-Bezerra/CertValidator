@@ -6,7 +6,9 @@
 
 * **Varredura Recursiva:** Busca profunda em diretórios por arquivos de certificado.
 * **Suporte a Formatos:** Compatível com JKS, PKCS12 e certificados X.509.
-* **Cofre Seguro (Vault):** Criptografa senhas de keystores usando AES-256 (GCM) através de uma chave mestra.
+* **Cofre Seguro (Vault):** Criptografa senhas de keystores usando AES-256 (GCM).
+* **Fontes Flexíveis:** Carregue senhas de arquivos, variáveis de ambiente ou arquivos .properties.
+* **Meta de Criptografia:** Comando Maven dedicado para criptografar senhas sem precisar escanear certificados.
 * **Relatório HTML:** Gera um relatório visual com o status de todos os certificados (Válido, Expirando, Expirado).
 * **Alertas por E-mail:** Notifica administradores sobre certificados críticos.
 
@@ -28,13 +30,36 @@ Esta aplicação utiliza um mecanismo de "Vault" para evitar manter senhas de ke
     * Salvar o resultado seguro em `secrets.dat`.
 4.  **Limpeza:** Após a criação do arquivo `secrets.dat`, você pode deletar o `passwords.txt` para maior segurança.
 
+## 🚀 Uso Avançado (Maven)
+
+### Comando de Criptografia
+Você pode gerar o arquivo `secrets.dat` isoladamente:
+```bash
+mvn certvalidator:encrypt -DMASTER_KEY=sua_chave
+```
+
+### Fontes de Senhas no POM
+```xml
+<configuration>
+    <passwordsEnv>VARIAVEL_DE_AMB</passwordsEnv>
+    <propertiesFile>caminho/para/arquivo.properties</propertiesFile>
+    <directPasswords>
+        <password>senha123</password>
+    </directPasswords>
+</configuration>
+```
+
 ## ⚙️ Configuração (Variáveis de Ambiente)
 
 | Variável | Descrição | Padrão |
 | :--- | :--- | :--- |
+| `MASTER_KEY` | **Obrigatório.** A chave para criptografar/descriptografar o cofre. | *(Nenhum)* |
+| `SECRET_SOURCES` | Fontes de senhas (separadas por vírgula): `file,env,prop`. | `file` |
+| `PASSWORDS_ENV` | Nome da variável de ambiente com senhas (se `env` ativo). | `CERT_PASSWORDS` |
+| `PROPERTIES_FILE` | Caminho para arquivo .properties (se `prop` ativo). | *(Nenhum)* |
+| `PROPERTIES_KEY` | Chave dentro do arquivo .properties. | `cert.passwords` |
 | `SCAN_PATH` | Diretório raiz para iniciar a varredura. | `./` |
 | `REPORT_PATH` | Caminho do arquivo para o relatório HTML gerado. | `.cert_reporter.html` |
-| `MASTER_KEY` | **Obrigatório.** A chave usada para criptografar/descriptografar o cofre. | *(Nenhum)* |
 | `WARNING_DAYS` | Limite (em dias) para marcar um certificado como "atenção". | `30` |
 | `SMTP_HOST` | Servidor SMTP para alertas de e-mail. | *(Vazio)* |
 | `SMTP_PORT` | Porta SMTP. | `587` |
