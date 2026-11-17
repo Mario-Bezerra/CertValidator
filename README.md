@@ -1,20 +1,23 @@
-# CertValidator Maven Plugin
+# CertValidator — SSL/TLS certificate checks for Maven projects
 
-**CertValidator** is a Maven Plugin designed to audit SSL/TLS certificates within your project structure. It recursively scans directories for Keystores (`.jks`, `.p12`) and Certificates (`.cer`, `.crt`, `.pem`), verifies their validity, and generates a comprehensive HTML report. It helps prevent production outages caused by expired certificates.
+Java 21 Maven plugin that recursively scans directories for X.509 certificate and keystore files, detects invalid or expiring certificates, produces an HTML report and optionally sends notifications.
 
-## 🚀 Features
+**Status:** Portfolio/development project. Its security and operational behavior has not been independently validated for production use.
 
-* **Recursive Scanning:** Smartly scans directories, automatically ignoring standard framework folders (`node_modules`, `target`, `.git`, etc.).
-* **Format Support:** Supports JKS, PKCS12, X.509 certificates.
-* **Secure Vault:** Encrypts keystore passwords using AES-256 (GCM).
-* **Flexible Secrets:** Load passwords from files, environment variables, or properties files.
-* **Encryption Goal:** Dedicated Maven goal to encrypt passwords separately from scanning.
-* **HTML Reporting:** Generates a modern, styled audit report.
-* **Email Alerts:** Can send notifications for expired or expiring certificates (configurable).
+## Implemented capabilities
 
-## 🔐 Installation (Local)
+- Recursive directory scanning with build-directory exclusions
+- Parsers for X.509 files and JKS/PKCS12 keystores
+- Configurable warning threshold and HTML report
+- Optional SMTP alerts
+- Password sources from environment variables, properties, files or direct configuration
+- AES-GCM vault with PBKDF2 key derivation
+- JUnit and Mockito tests
 
-Since this plugin is not yet published to Maven Central, you must install it to your local repository:
+## Requirements and local installation
+
+- Java 21 and Maven
+- Plugin is not documented as published to Maven Central: install locally before using it in another project.
 
 ```bash
 git clone https://github.com/Mario-Bezerra/CertValidator.git
@@ -22,110 +25,72 @@ cd CertValidator
 mvn clean install
 ```
 
-## Usage
+The Maven coordinates are **`io.github.mario-bezerra:certValidator:0.0.1`**, as defined in [`pom.xml`](pom.xml).
 
-### 1. As a Maven Plugin (Recommended)
-
-Add the plugin to your project's `pom.xml` in the `<build><plugins>` section.
+## Configure your Maven project
 
 ```xml
 <build>
-    <plugins>
-        <plugin>
-            <groupId>cert.validator</groupId>
-            <artifactId>certValidator</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-            <executions>
-                <execution>
-                    <phase>verify</phase> <!-- Runs automatically during verify phase -->
-                    <goals>
-                        <goal>scan</goal>
-                    </goals>
-                </execution>
-            </executions>
-            <configuration>
-                <!-- Optional Configuration -->
-                <scanPath>${project.basedir}</scanPath>
-                <reportPath>${project.build.directory}/cert-report.html</reportPath>
-                <warningDays>30</warningDays>
-                <passwordsFile>secrets/passwords.txt</passwordsFile>
-                
-                <!-- Simple Email Alerting (Optional) -->
-                <!-- Ideally configured via Environment Variables for security -->
-            </configuration>
-        </plugin>
-    </plugins>
+  <plugins>
+    <plugin>
+      <groupId>io.github.mario-bezerra</groupId>
+      <artifactId>certValidator</artifactId>
+      <version>0.0.1</version>
+      <executions>
+        <execution>
+          <phase>verify</phase>
+          <goals><goal>scan</goal></goals>
+        </execution>
+      </executions>
+      <configuration>
+        <scanPath>${project.basedir}</scanPath>
+        <reportPath>${project.build.directory}/cert-report.html</reportPath>
+        <warningDays>30</warningDays>
+      </configuration>
+    </plugin>
+  </plugins>
 </build>
 ```
 
-Run it manually:
+With the plugin locally installed, execute `mvn verify` on the consuming project, or invoke the goal directly:
+
 ```bash
-mvn certvalidator:scan
+mvn io.github.mario-bezerra:certValidator:0.0.1:scan
 ```
 
-### 2. Standalone Encryption
-You can generate the encrypted `secrets.dat` file without running a full scan:
+The current scan goal **reports warnings but does not automatically fail a build** when certificates are expiring. See [`ScanMojo`](src/main/java/certValidator/mojo/ScanMojo.java).
+
+## Configuration
+
+| Plugin configuration | Default | Purpose |
+| --- | --- | --- |
+| `scanPath` | `${project.basedir}` | Directory to scan |
+| `reportPath` | `${project.build.directory}/cert-report.html` | HTML report path |
+| `warningDays` | `30` | Expiration warning threshold |
+| `passwordsFile` | `passwords.txt` | Optional password input |
+| `secretsFile` | `secrets.dat` | AES-GCM vault file |
+| `passwordsEnv` | `CERT_PASSWORDS` | Environment password source |
+| `propertiesFile` | unset | Optional password properties file |
+| `propertiesKey` | `cert.passwords` | Key in properties file |
+| `directPasswords` | unset | Maven-configured list |
+
+Set the `MASTER_KEY` environment variable to use the encrypted vault. See [`EncryptMojo`](src/main/java/certValidator/mojo/EncryptMojo.java) and [`AppConfig`](src/main/java/certValidator/Config/AppConfig.java) for encryption and SMTP configuration.
+
+## Testing and security notes
+
 ```bash
-mvn certvalidator:encrypt -DMASTER_KEY=your_key
+mvn test
 ```
 
-### 3. Flexible Password Sourcing
-The plugin can aggregate passwords from multiple sources simultaneously:
+Tests exist for scanning, parsing, reporting, secret providers and Maven goals; test execution has **not been independently verified** as part of this README update.
 
-```xml
-<configuration>
-    <passwordsEnv>MY_ENV_VAR</passwordsEnv>
-    <propertiesFile>path/to/my.properties</propertiesFile>
-    <directPasswords>
-        <password>direct123</password>
-    </directPasswords>
-</configuration>
-```
+The repository contains test password/keystore fixtures. **Verify that every committed fixture is synthetic** before treating the repository as suitable for public sharing. Rotate any authentic credentials exposed in Git history. Never commit real master keys, private keys or production keystores.
 
-### 4. As a Dependency (Java Library)
+## Next improvements
 
-If you want to use the scanning logic programmatically in your own Java application:
+1. Validate the clean Maven build and add GitHub Actions CI.
+2. Audit all committed secret fixtures and tighten `.gitignore`.
+3. Add fail-on-expiration mode and tests for malformed files and failure scenarios.
+4. Normalize package naming and document a safe end-to-end sample.
 
-```xml
-<dependency>
-    <groupId>cert.validator</groupId>
-    <artifactId>certValidator</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-</dependency>
-```
-
-**Example:**
-```java
-import certValidator.Scanner.ScannerService;
-import certValidator.Model.CertModel;
-import java.util.List;
-
-// ...
-ScannerService scanner = new ScannerService(passwords, parsers);
-List<CertModel> results = scanner.scan("/path/to/scan");
-```
-
-## 🔐 Security & Configuration
-
-### Environment Variables
-For security (especially for Vault Master Key and Email Credentials), use environment variables:
-
-| Variable | Description | Default |
-| :--- | :--- | :--- |
-| `MASTER_KEY` | **Required** for Vault. The key used to encrypt/decrypt passwords. | *(None)* |
-| `SECRET_SOURCES` | Comma-separated sources to load: `file,env,prop`. | `file` |
-| `PASSWORDS_ENV` | Env var name to read passwords from if `env` source is active. | `CERT_PASSWORDS` |
-| `PROPERTIES_FILE` | Path to .properties file if `prop` source is active. | *(None)* |
-| `PROPERTIES_KEY` | Key for passwords in the properties file. | `cert.passwords` |
-| `SCAN_PATH` | Path to scan for certificates. | `./` |
-| `REPORT_PATH` | Path to save the HTML report. | `.cert_reporter.html` |
-| `SMTP_HOST` | SMTP Server for alerts. | *(Empty)* |
-| `SMTP_PORT` | SMTP Port. | `587` |
-| `EMAIL_USER` | SMTP Username. | *(Empty)* |
-| `EMAIL_PASS` | SMTP Password. | *(Empty)* |
-| `EMAIL_TO` | Recipient email. | *(Empty)* |
-
-### Password Vault
-1.  Create a `passwords.txt` with comma-separated passwords: `changeit, secret123`
-2.  Run the plugin. It will encrypt these into `secrets.dat` using `MASTER_KEY`.
-3.  Delete `passwords.txt` after `secrets.dat` is generated.
+[Versão em português](README_pt-BR.md)
